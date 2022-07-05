@@ -1,0 +1,23 @@
+{
+  "name": "react-easy-crop-custom-image-demo",
+  "version": "1.0.0",
+  "description": "Demo with custom image picking.\nThere is also a logic to detect the orientation of the image (if taken from a phone) and automatically rotate it.",
+  "keywords": [],
+  "main": "src/index.js",
+  "dependencies": {
+    "@material-ui/core": "4.11.3",
+    "@material-ui/icons": "4.9.1",
+    "get-orientation": "1.1.2",
+    "react": "16.8.6",
+    "react-dom": "16.8.6",
+    "react-easy-crop": "latest",
+    "react-scripts": "1.1.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
