@@ -1,0 +1,48 @@
+pipelines:
+  branches:
+    '{master,feature/**,bugfix/**}':
+      - step:
+          script:
+            - echo "Nothing to deploy"
+    release/integration-1.0.x:
+      - step:
+          name: 'Build Pearlcore'
+          image: node:16
+          script:
+            - apt-get update
+            - apt-get install -y zip
+            - npm install
+            - npx -y browserslist@latest --update-db
+            - npm run-script build
+            - cp appspec.yml build/
+            - cp .htaccess build/
+            - mkdir packaged
+            - zip -r packaged/package-${BITBUCKET_BUILD_NUMBER}.zip ./build
+          artifacts:
+            - packaged/**
+      - step:
+          name: 'Deploy to AWS'
+          script:
+            - pipe: atlassian/aws-code-deploy:0.2.5
+              variables:
+                AWS_DEFAULT_REGION: '$ELLAN_AWS_REGION'
+                AWS_ACCESS_KEY_ID: $ELLAN_AWS_ACCESS_KEY_ID
+                AWS_SECRET_ACCESS_KEY: $ELLAN_AWS_SECRET_ACCESS_KEY
+                APPLICATION_NAME: '$ELLAN_APPLICATION_NAME'
+                S3_BUCKET: '$ELLAN_DEPLOY_BUCKET'
+                COMMAND: 'upload'
+                ZIP_FILE: 'packaged/package-${BITBUCKET_BUILD_NUMBER}.zip'
+                VERSION_LABEL: '${ELLAN_APPLICATION_NAME}-${BITBUCKET_BUILD_NUMBER}'
+            - pipe: atlassian/aws-code-deploy:0.2.5
+              variables:
+                AWS_DEFAULT_REGION: '$ELLAN_AWS_REGION'
+                AWS_ACCESS_KEY_ID: $ELLAN_AWS_ACCESS_KEY_ID
+                AWS_SECRET_ACCESS_KEY: $ELLAN_AWS_SECRET_ACCESS_KEY
+                APPLICATION_NAME: '$ELLAN_APPLICATION_NAME'
+                DEPLOYMENT_GROUP: '$ELLAN_APPLICATION_GROUP'
+                S3_BUCKET: '$ELLAN_DEPLOY_BUCKET'
+                COMMAND: 'deploy'
+                WAIT: 'true'
+                VERSION_LABEL: '${ELLAN_APPLICATION_NAME}-${BITBUCKET_BUILD_NUMBER}'
+                IGNORE_APPLICATION_STOP_FAILURES: 'true'
+                FILE_EXISTS_BEHAVIOR: 'OVERWRITE'

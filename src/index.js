@@ -1,195 +1,39 @@
-import React, { useState, useCallback } from 'react'
-import ReactDOM from 'react-dom'
-import Cropper from 'react-easy-crop'
-import Slider from '@material-ui/core/Slider'
-import Button from '@material-ui/core/Button'
-import Typography from '@material-ui/core/Typography'
-import { withStyles } from '@material-ui/core/styles'
-import { getOrientation } from 'get-orientation/browser'
-import ImgDialog from './ImgDialog'
-import { getCroppedImg, getRotatedImage } from './canvasUtils'
-import { styles } from './styles'
-import Dropzone from 'react-dropzone'
-const ORIENTATION_TO_ANGLE = {
-  3: 180,
-  6: 90,
-  8: -90,
-}
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+// import './index.css';
+import axios from "axios";
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import * as _redux from "../src/Components/redux";
+import store, { persistor } from "../src/Components/redux/store";
+const root = ReactDOM.createRoot(document.getElementById('root'));
 
-const Demo = ({ classes }) => {
-  const [imageSrc, setImageSrc] = React.useState(null)
-  const [crop, setCrop] = useState({ x: 0, y: 0 })
-  const [rotation, setRotation] = useState(0)
-  const [zoom, setZoom] = useState(1)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
-  const [croppedImage, setCroppedImage] = useState(null)
 
-  const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
-    setCroppedAreaPixels(croppedAreaPixels)
-  }, [])
+const  base_url="http://77.68.116.225:8488/"
 
-  const showCroppedImage = useCallback(async () => {
-    try {
-      const croppedImage = await getCroppedImg(
-        imageSrc,
-        croppedAreaPixels,
-        rotation
-      )
-      console.log('donee', { croppedImage })
-      setCroppedImage(croppedImage)
-    } catch (e) {
-      console.error(e)
-    }
-  }, [imageSrc, croppedAreaPixels, rotation])
 
-  const onClose = useCallback(() => {
-    setCroppedImage(null)
-  }, [])
+_redux.setupAxios(axios, store,base_url);
+root.render(
+  // <React.StrictMode>
+    <App 
+    // base_url={base_url}
+      firm={"340100753856876300"}
 
-  const onFileChange = async (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0]
-      let imageDataUrl = await readFile(file)
+      token={"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwidXNlcl9pZCI6MSwidHlwZSI6MSwiZmlybV9pZCI6IjM0MDEwMDc1Mzg1Njg3NjMwMCIsImV4cCI6MTY1NzYwODU4MiwianRpIjoicnRqOGpqdTN6Z2VtM2M5YjFuOGR3aXV3cHhiM251dXUifQ.l7OWa3VdU6L3vA-gqMWVWMs2KmnIVpRhwImnVJGNdyo"}
 
-      // apply rotation if needed
-      const orientation = await getOrientation(file)
-      const rotation = ORIENTATION_TO_ANGLE[orientation]
-      if (rotation) {
-        imageDataUrl = await getRotatedImage(imageDataUrl, rotation)
-      }
+      ref_token={"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImlkIjoxLCJ0eXBlIjoxLCJmaXJtIjoiMzQwMTAwNzUzODU2ODc2MzAwIiwiZXhwIjoxNjg4NTM5NzgyLCJqdGkiOiJsMnQybzI0bHF5bDZhaGxjZTl4ajZyc2JhbjF0eWFhdiJ9.y0-YTtx2oOOOfIJNLvXTbx8l0kYq-hD29Q6bnXBXhc0"}
+      post_id={"gAAAAABiw98F05ZGKJ3s4PjqOAB64Gd5Yucw9XqMxbYrGaOQRySXYvH4Wvo4lbi3L6swlF33LFO1V3voMvktotHs7TUT4rugTA=="}
+      session_id={"IfUo8Y8VPgzgY0ns2OqHEgJp6kkEVSL7"}
 
-      setImageSrc(imageDataUrl)
-    }
-  }
-  function handlePickedImage(files) {
-    setImageSrc(URL.createObjectURL(files[0]))
-    // setFieldValue("logo", files[0]);
-  }
+     
+      
+      // onInvalidFirm={onInvalidFirm}
+    />
+  // </React.StrictMode>
+);
 
-  return (
-    <div>
-      <Dropzone
-        multiple={false}
-        onDrop={(acceptedFiles) => {
-          handlePickedImage(acceptedFiles)
-        }}
-      >
-        {({ getRootProps, getInputProps }) => (
-          <section
-            style={{
-              borderStyle: 'dashed',
-              borderColor: 'gray',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: '300px',
-              marginTop: '18px',
-              backgroundColor: '#f6f7f8',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                height: '100%',
-                justifyContent: 'center',
-              }}
-              {...getRootProps()}
-            >
-              <input {...getInputProps()} />
-
-              <img
-                alt=""
-                style={{ maxWidth: '100px' }}
-                // src={uploadIcon}
-              />
-
-              <p style={{ marginTop: '18px' }}>
-                Drag 'n' drop some files here, or click to select files
-              </p>
-            </div>
-          </section>
-        )}
-      </Dropzone>
-
-      {imageSrc ? (
-        <React.Fragment>
-          <div className={classes.cropContainer}>
-            <Cropper
-              image={imageSrc}
-              crop={crop}
-              rotation={rotation}
-              zoom={zoom}
-              aspect={4 / 3}
-              onCropChange={setCrop}
-              onRotationChange={setRotation}
-              onCropComplete={onCropComplete}
-              onZoomChange={setZoom}
-            />
-          </div>
-          <div className={classes.controls}>
-            <div className={classes.sliderContainer}>
-              <Typography
-                variant="overline"
-                classes={{ root: classes.sliderLabel }}
-              >
-                Zoom
-              </Typography>
-              <Slider
-                value={zoom}
-                min={1}
-                max={3}
-                step={0.1}
-                aria-labelledby="Zoom"
-                classes={{ root: classes.slider }}
-                onChange={(e, zoom) => setZoom(zoom)}
-              />
-            </div>
-            <div className={classes.sliderContainer}>
-              <Typography
-                variant="overline"
-                classes={{ root: classes.sliderLabel }}
-              >
-                Rotation
-              </Typography>
-              <Slider
-                value={rotation}
-                min={0}
-                max={360}
-                step={1}
-                aria-labelledby="Rotation"
-                classes={{ root: classes.slider }}
-                onChange={(e, rotation) => setRotation(rotation)}
-              />
-            </div>
-            <Button
-              onClick={showCroppedImage}
-              variant="contained"
-              color="primary"
-              classes={{ root: classes.cropButton }}
-            >
-              Show Result
-            </Button>
-          </div>
-          <ImgDialog img={croppedImage} onClose={onClose} />
-        </React.Fragment>
-      ) : (
-        <input type="file" onChange={onFileChange} accept="image/*" />
-      )}
-    </div>
-  )
-}
-
-function readFile(file) {
-  return new Promise((resolve) => {
-    const reader = new FileReader()
-    reader.addEventListener('load', () => resolve(reader.result), false)
-    reader.readAsDataURL(file)
-  })
-}
-
-const StyledDemo = withStyles(styles)(Demo)
-
-const rootElement = document.getElementById('root')
-ReactDOM.render(<StyledDemo />, rootElement)
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
